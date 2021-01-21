@@ -1,0 +1,197 @@
+---
+title: "Insurance Pricing Game"
+output: html_notebook
+---
+
+```{r}
+# Data Exploration 
+train <- read.csv("/Users/st_woogie/Desktop/training.csv", header = TRUE)
+```
+
+```{r}
+head(train)
+```
+
+```{r}
+summary(train)
+```
+
+```{r}
+#Plotting
+library(ggplot2)
+install.packages("gridExtra")
+library(gridExtra)
+```
+
+```{r}
+#Statistical Summary
+summary(train$claim_amount)
+
+sd(train$claim_amount)
+
+#Tabular Summary
+table(train$claim_amount)
+#Many zero claims
+
+#Graphical Summary
+p1 <- ggplot(train, aes(x = claim_amount)) +
+  geom_histogram(fill = "blue")
+
+p1
+```
+
+```{r}
+#Categorical Variables (Entire Data)
+p4 <- ggplot(train, aes(x = pol_coverage, y = ..prop.., group = 1)) +
+  geom_bar(fill = "blue") +
+  xlab('Coverage Types') +
+  ylab('Proportions')
+
+p5 <- ggplot(train, aes(x = pol_payd, y = ..prop.., group = 1)) +
+  geom_bar(fill = "red") +
+  xlab('Mileage Based Policy') +
+  ylab('Proportions')
+
+p6 <- ggplot(train, aes(x = pol_usage, y = ..prop.., group = 1)) +
+  geom_bar(fill = "green") +
+  xlab('Vehicle Usage') +
+  ylab('Proportions')
+
+#proportion of the primary, secondary drivers' genders
+p7 <- ggplot(train, aes(x = drv_sex1, y = ..prop.., group = 1)) +
+  geom_bar(fill = "blue") +
+  xlab('Gender of the First Driver') +
+  ylab('Proportions')
+
+p8 <- ggplot(train, aes(x = drv_sex2, y = ..prop.., group = 1)) +
+  geom_bar(fill = "red") +
+  xlab('Gender of the Second Driver') +
+  ylab('Proportions')
+
+p9 <- ggplot(train, aes(x = vh_fuel, y = ..prop.., group = 1)) +
+  geom_bar(fill = "pink") +
+  xlab('Fuel Types') +
+  ylab('Proportions')
+
+grid.arrange(p4, p5, p6, p7, p8, p9, ncol = 3)
+
+```
+
+
+```{r}
+#Conditional Claims Distribution (Remove data with zero claim amounts)
+
+nonzero_claim <- train$claim_amount!=0
+train2 <- train[nonzero_claim, ]
+summary(train2)
+```
+
+```{r}
+train3 = train2
+train3$claim_amount <- log(train3$claim_amount)
+
+#Graphical Representation of the Conditional Claims
+p2 <- ggplot(train3, aes(x = vh_type, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('Vehicle Type')
+  
+p3 <- ggplot(train3, aes(x = drv_sex1, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('First Driver Gender')
+
+p100 <- ggplot(train3, aes(x = vh_fuel, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('Fuel')
+
+p101 <- ggplot(train3, aes(x = pol_coverage, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('Pol Coverage')
+
+p102 <- ggplot(train3, aes(x = train3$pol_pay_freq, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('Freq')
+
+p103 <- ggplot(train3, aes(x = pol_payd, y = claim_amount)) +
+  geom_boxplot() +
+  ylab('ln(Claim Amounts)') +
+  xlab('Mileage')
+
+grid.arrange(p2, p3, p100, p101, p102, p103, ncol = 3)
+
+p4 <- qqnorm(train3$claim_amount, pch = 1, frame = FALSE)
+qqline(train3$claim_amount, col = "steelblue", lwd = 2)
+
+
+
+#Quite close to lognormal dist.
+```
+
+
+```{r}
+install.packages("psych")
+library(psych)
+```
+
+```{r}
+if(!require("PerformanceAnalytics")){
+    install.packages("PerformanceAnalytics")
+    library("PerformanceAnalytics")
+}
+```
+
+```{r}
+#pairwise explanatory
+chart.Correlation(train3[,c(5,11,12,18,21,22,23,24,25)], histogram=TRUE, pch=15, alpha = 1/100) 
+```
+
+```{r}
+#response
+chart.Correlation(train3[,c(5,11,12,18,21,22,23,24,25, 26)], histogram=TRUE, pch=10, alpha = 1/100) 
+```
+
+```{r}
+#Categorical Variables (Conditional Data)
+p11 <- ggplot(train2, aes(x = train2$pol_coverage, y = ..prop.., group = 1)) +
+  geom_bar(fill = "blue") +
+  xlab('Coverage Types') +
+  ylab('Proportions')
+
+p12 <- ggplot(train2, aes(x = pol_payd, y = ..prop.., group = 1)) +
+  geom_bar(fill = "red") +
+  xlab('Mileage Based Policy') +
+  ylab('Proportions')
+
+p13 <- ggplot(train2, aes(x = pol_usage, y = ..prop.., group = 1)) +
+  geom_bar(fill = "green") +
+  xlab('Vehicle Usage') +
+  ylab('Proportions')
+
+#proportion of the primary, secondary drivers' genders
+p14 <- ggplot(train2, aes(x = drv_sex1, y = ..prop.., group = 1)) +
+  geom_bar(fill = "blue") +
+  xlab('Gender of the First Driver') +
+  ylab('Proportions')
+
+p15 <- ggplot(train2, aes(x = drv_sex2, y = ..prop.., group = 1)) +
+  geom_bar(fill = "red") +
+  xlab('Gender of the Second Driver') +
+  ylab('Proportions')
+
+p16 <- ggplot(train2, aes(x = vh_fuel, y = ..prop.., group = 1)) +
+  geom_bar(fill = "pink") +
+  xlab('Fuel Types') +
+  ylab('Proportions')
+
+grid.arrange(p11, p12, p13, p14, p15, p16, ncol = 3)
+
+#Inferences Made
+# similar proportions for conditional data
+# We see that 80 percent of insureds who caused claims were max covered insureds (Maybe because of the sense of security? Because they are covered in all areas)
+#Hybrid Cars Safer?
+```
+
